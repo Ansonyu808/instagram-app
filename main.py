@@ -56,11 +56,15 @@ class InstagramWebDriver:
         scroll_popup = self.driver.find_element_by_xpath("//div[@class='isgrP']")
         self.scroll_to_bottom(scroll_popup)
 
+        bucket = {
+            'following': self.following,
+            'followers': self.followers
+        }
         for i in range(1, num_follow + 1):
             xpath = f'/html/body/div[4]/div/div[2]/ul/div/li[{i}]/div/div[1]/div[2]/div[1]/a'
             try:
                 name = self.driver.find_element_by_xpath(xpath).text
-                self.followers.add(name)
+                bucket[type].add(name)
             except Exception as e:
                 print(e)
 
@@ -72,7 +76,7 @@ class InstagramWebDriver:
                 arguments[0].scrollTo(0, arguments[0].scrollHeight);
                 return arguments[0].scrollHeight;
             ''', element)
-            sleep(1)
+            sleep(1.5)
 
     def navigate_to_profile_page(self):
         self.driver.get(f'https://www.instagram.com/{self.username}/')
@@ -85,4 +89,7 @@ test = InstagramWebDriver()
 test.login()
 test.get('followers')
 test.get('following')
+print(test.following)
+print(test.followers)
 print(test.following - test.followers)
+print(test.followers - test.following)
