@@ -1,9 +1,7 @@
 import os
 from time import sleep
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -25,37 +23,46 @@ class InstagramWebDriver:
             username = self.wait.until(EC.element_to_be_clickable((By.NAME, 'username')))
             password = self.wait.until(EC.element_to_be_clickable((By.NAME, 'password')))
 
-            self.username = 'ansonyu808'
+            self.username = self.get_user_input('username')
             username.send_keys(self.username)
-            password.send_keys('Easyas123')
-            # self.username = self.get_user_input('username')
-            # username.send_keys(self.username)
-            # password.send_keys(self.get_user_input('password'))
+            password.send_keys(self.get_user_input('password'))
 
-            # Click login button
             login_xpath = '/html/body/div[1]/section/main/article/div[2]/div[1]/div/form/div[4]/button/div'
             self.driver.find_element_by_xpath(login_xpath).click()
 
-            # If notifications appears, click  "Not Now "
             notifications_xpath = '/html/body/div[4]/div/div/div[3]/button[2]'
             self.wait.until(EC.element_to_be_clickable((By.XPATH, notifications_xpath))).click()
         except:
             raise
 
-    def get_followers(self):
+    def get(self, type):
+        xpath_num = 0
+        if type == 'following':
+            xpath_num = 3
+        elif type == 'followers':
+            xpath_num = 2
+        else:
+            return
+
         self.navigate_to_profile_page()
 
-        followers_button_xpath = '/html/body/div[1]/section/main/div/header/section/ul/li[2]/a'
-        self.wait.until(EC.element_to_be_clickable((By.XPATH, followers_button_xpath))).click()
+        follow_button_xpath = f'/html/body/div[1]/section/main/div/header/section/ul/li[{xpath_num}]/a'
+        follow_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, follow_button_xpath)))
+        num_follow = int(self.driver.find_element_by_xpath(
+            f'/html/body/div[1]/section/main/div/header/section/ul/li[{xpath_num}]/a/span').text)
+        follow_button.click()
         sleep(2)
 
         scroll_popup = self.driver.find_element_by_xpath("//div[@class='isgrP']")
         self.scroll_to_bottom(scroll_popup)
-        print("Finished Scrolling")
 
-        links = scroll_popup.find_elements_by_tag_name('a')
-        names = [name.text for name in links if name.text != '']
-        self.followers = names
+        for i in range(1, num_follow + 1):
+            xpath = f'/html/body/div[4]/div/div[2]/ul/div/li[{i}]/div/div[1]/div[2]/div[1]/a'
+            try:
+                name = self.driver.find_element_by_xpath(xpath).text
+                self.followers.add(name)
+            except Exception as e:
+                print(e)
 
     def scroll_to_bottom(self, element):
         last_ht, ht = 0, 1
@@ -76,5 +83,6 @@ class InstagramWebDriver:
 
 test = InstagramWebDriver()
 test.login()
-test.get_followers()
-
+test.get('followers')
+test.get('following')
+print(test.following - test.followers)
